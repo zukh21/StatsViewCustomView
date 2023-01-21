@@ -73,13 +73,14 @@ class StatsView @JvmOverloads constructor(
             return
         }
         var starAngle = -90F
-        data.forEachIndexed {index, datum ->
-            val angle = datum * 360F
+        val count: Float = data.sum() / data.sum() * 0.25F
+        data.forEachIndexed {index, _ ->
+            val angle = count * 360F
             paint.color = colors.getOrElse(index){generateRandomColor()}
             canvas.drawArc(oval, starAngle, angle, false, paint)
             starAngle += angle
         }
-        canvas.drawText("%.2f%%".format(data.sum() * 100),
+        canvas.drawText("%.2f%%".format(count * 100 * 4),
         center.x,
         center.y + textPaint.textSize / 4,
         textPaint)
