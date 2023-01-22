@@ -8,17 +8,17 @@
 
     <kg.zim.statsview.ui.StatsView
         android:id="@+id/statsView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        app:color1="#000000"
-        app:color2="#FF9800"
-        app:color3="@color/black"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        app:color1="#E91E63"
+        app:color2="#2196F3"
+        app:color3="#4CAF50"
         app:color4="#FF9800"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:lineWidth="2dp"
-        app:textSize="12sp" />
+        app:lineWidth="8dp"
+        app:textSize="24sp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

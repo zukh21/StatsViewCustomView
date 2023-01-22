@@ -1,9 +1,11 @@
 package kg.zim.statsview.ui
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.LinearInterpolator
 import androidx.core.content.withStyledAttributes
 import kg.zim.statsview.R
 import kg.zim.statsview.utils.AndroidUtils
@@ -16,20 +18,24 @@ class StatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0,
 ) : View(context, attributeSet, defStyleAttr, defStyleRes) {
+    private var progress: Float = 0F
+    private var rotate: Float = 0F
+    private var valueAnimator: ValueAnimator? = null
     var data: List<Float> = emptyList()
         set(value) {
             field = value
-            invalidate()
+            anim()
         }
     private var radius = 0F
     private var center = PointF()
     private var textSize = AndroidUtils.dp(context, 20).toFloat()
     private var lineWidth = AndroidUtils.dp(context, 5)
     private var oval = RectF()
+    private val durationValue = 3000L
     private var colors = emptyList<Int>()
 
     init {
-        context.withStyledAttributes(attributeSet, R.styleable.StatsView){
+        context.withStyledAttributes(attributeSet, R.styleable.StatsView) {
             textSize = getDimension(R.styleable.StatsView_textSize, textSize)
             lineWidth = getDimension(R.styleable.StatsView_lineWidth, lineWidth.toFloat()).toInt()
             colors = listOf(
@@ -40,14 +46,25 @@ class StatsView @JvmOverloads constructor(
             )
         }
     }
+
     private val paint = Paint(
-        Paint.ANTI_ALIAS_FLAG
+        Paint.ANTI_ALIAS_FLAG,
     ).apply {
         strokeWidth = lineWidth.toFloat()
         style = Paint.Style.STROKE
-        strokeJoin = Paint.Join.ROUND
+        strokeJoin = Paint.Join.MITER
         strokeCap = Paint.Cap.ROUND
     }
+
+    private val notFilledPaint = Paint(
+        Paint.ANTI_ALIAS_FLAG,
+    ).apply {
+        strokeWidth = lineWidth.toFloat()
+        style = Paint.Style.STROKE
+        strokeJoin = Paint.Join.MITER
+        strokeCap = Paint.Cap.ROUND
+    }
+
     private val textPaint = Paint(
         Paint.ANTI_ALIAS_FLAG
     ).apply {
@@ -73,17 +90,52 @@ class StatsView @JvmOverloads constructor(
             return
         }
         var starAngle = -90F
-        val count: Float = data.sum() / data.sum() * 0.25F
-        data.forEachIndexed {index, _ ->
-            val angle = count * 360F
-            paint.color = colors.getOrElse(index){generateRandomColor()}
-            canvas.drawArc(oval, starAngle, angle, false, paint)
-            starAngle += angle
+        val count: Float = data.sum() / data.sum() * .25F
+        println("count $count")
+        data.forEachIndexed { index, _ ->
+            var angle = count * 360F
+            println("angle: $angle")
+            paint.color = colors.getOrElse(index) { generateRandomColor() }
+            canvas.drawArc(oval, starAngle + rotate, angle * progress, false, paint)
+            starAngle += 90
+
+
+            println("starAngle: $starAngle")
         }
-        canvas.drawText("%.2f%%".format(count * 100 * 4),
-        center.x,
-        center.y + textPaint.textSize / 4,
-        textPaint)
+        canvas.drawText(
+            "%.2f%%".format((count * data.size) * 100),
+            center.x,
+            center.y + textPaint.textSize / 4,
+            textPaint
+        )
+    }
+
+    private fun anim() {
+        progress = 0F
+        rotate = 0F
+        valueAnimator = ValueAnimator.ofFloat(0F, 1F).apply {
+            addUpdateListener { anim ->
+                progress = anim.animatedValue as Float
+//                rotate = anim.animatedValue as Float * 180
+//                rotation = 100F
+            }
+            interpolator = LinearInterpolator()
+            duration = durationValue
+        }.also {
+            it.start()
+        }
+
+        ValueAnimator.ofFloat(360F).apply {
+            addUpdateListener { anim ->
+                rotate = anim.animatedValue as Float
+                invalidate()
+            }
+
+            interpolator = LinearInterpolator()
+            duration = durationValue
+        }.also {
+            it.start()
+        }
     }
 
     private fun generateRandomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
