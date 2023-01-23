@@ -2,6 +2,7 @@ package kg.zim.statsview.ui
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
@@ -55,16 +56,6 @@ class StatsView @JvmOverloads constructor(
         strokeJoin = Paint.Join.MITER
         strokeCap = Paint.Cap.ROUND
     }
-
-    private val notFilledPaint = Paint(
-        Paint.ANTI_ALIAS_FLAG,
-    ).apply {
-        strokeWidth = lineWidth.toFloat()
-        style = Paint.Style.STROKE
-        strokeJoin = Paint.Join.MITER
-        strokeCap = Paint.Cap.ROUND
-    }
-
     private val textPaint = Paint(
         Paint.ANTI_ALIAS_FLAG
     ).apply {
@@ -89,18 +80,29 @@ class StatsView @JvmOverloads constructor(
         if (data.isEmpty()) {
             return
         }
+        val progressAngle = progress * 360F
         var starAngle = -90F
         val count: Float = data.sum() / data.sum() * .25F
-        println("count $count")
-        data.forEachIndexed { index, _ ->
-            var angle = count * 360F
-            println("angle: $angle")
-            paint.color = colors.getOrElse(index) { generateRandomColor() }
-            canvas.drawArc(oval, starAngle + rotate, angle * progress, false, paint)
-            starAngle += 90
+        val max = (count * data.size) * 360F
+        val angle = count * 360F
 
-
-            println("starAngle: $starAngle")
+        if (progressAngle > max) {
+            data.forEachIndexed { index, _ ->
+                paint.color = colors.getOrElse(index) { generateRandomColor() }
+                canvas.drawArc(oval, starAngle, angle, false, paint)
+                starAngle += angle
+            }
+        }else {
+            var filled = 0F
+            for ((index, _) in data.withIndex()){
+                paint.color = colors.getOrElse(index) { generateRandomColor() }
+                canvas.drawArc(oval, starAngle, progressAngle - filled, false, paint)
+                starAngle += angle
+                filled += angle
+                if (filled > progressAngle){
+                    break
+                }
+            }
         }
         canvas.drawText(
             "%.2f%%".format((count * data.size) * 100),
@@ -139,4 +141,8 @@ class StatsView @JvmOverloads constructor(
     }
 
     private fun generateRandomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
+}
+enum class FilledType{
+    parallel,
+    consistent
 }
