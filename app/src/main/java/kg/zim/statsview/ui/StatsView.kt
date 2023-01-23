@@ -118,8 +118,6 @@ class StatsView @JvmOverloads constructor(
         valueAnimator = ValueAnimator.ofFloat(0F, 1F).apply {
             addUpdateListener { anim ->
                 progress = anim.animatedValue as Float
-//                rotate = anim.animatedValue as Float * 180
-//                rotation = 100F
             }
             interpolator = LinearInterpolator()
             duration = durationValue
@@ -141,8 +139,4 @@ class StatsView @JvmOverloads constructor(
     }
 
     private fun generateRandomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
-}
-enum class FilledType{
-    parallel,
-    consistent
 }

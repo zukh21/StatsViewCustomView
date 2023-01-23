@@ -10,7 +10,6 @@
         android:id="@+id/statsView"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        app:filledType="consistent"
         app:color1="#E91E63"
         app:color2="#2196F3"
         app:color3="#4CAF50"
