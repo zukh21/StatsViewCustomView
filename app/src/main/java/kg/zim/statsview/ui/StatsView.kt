@@ -80,7 +80,7 @@ class StatsView @JvmOverloads constructor(
             canvas.drawArc(oval, starAngle, angle, false, paint)
             starAngle += angle
         }
-        canvas.drawText("%.2f%%".format(count * 100 * 4),
+        canvas.drawText("%.2f%%".format(count * 100 * data.size),
         center.x,
         center.y + textPaint.textSize / 4,
         textPaint)
