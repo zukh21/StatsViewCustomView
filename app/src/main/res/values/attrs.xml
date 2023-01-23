@@ -3,6 +3,10 @@
     <declare-styleable name="StatsView">
         <attr name="textSize" format="dimension|reference"/>
         <attr name="lineWidth" format="dimension|reference"/>
+        <attr name="filledType" format="enum">
+            <enum name="sequential" value="0"/>
+            <enum name="parallel" value="1"/>
+        </attr>
         <attr name="color1" format="color|reference"/>
         <attr name="color2" format="color|reference"/>
         <attr name="color3" format="color|reference"/>

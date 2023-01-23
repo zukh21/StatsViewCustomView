@@ -34,11 +34,13 @@ class StatsView @JvmOverloads constructor(
     private var oval = RectF()
     private val durationValue = 3000L
     private var colors = emptyList<Int>()
+    private var filledType: FilledType? = null
 
     init {
         context.withStyledAttributes(attributeSet, R.styleable.StatsView) {
             textSize = getDimension(R.styleable.StatsView_textSize, textSize)
             lineWidth = getDimension(R.styleable.StatsView_lineWidth, lineWidth.toFloat()).toInt()
+            filledType = FilledType.values()[getInt(R.styleable.StatsView_filledType, 1)]
             colors = listOf(
                 getColor(R.styleable.StatsView_color1, generateRandomColor()),
                 getColor(R.styleable.StatsView_color2, generateRandomColor()),
@@ -85,31 +87,44 @@ class StatsView @JvmOverloads constructor(
         val count: Float = data.sum() / data.sum() * .25F
         val max = (count * data.size) * 360F
         val angle = count * 360F
-
-        if (progressAngle > max) {
-            data.forEachIndexed { index, _ ->
-                paint.color = colors.getOrElse(index) { generateRandomColor() }
-                canvas.drawArc(oval, starAngle, angle, false, paint)
-                starAngle += angle
-            }
-        }else {
-            var filled = 0F
-            for ((index, _) in data.withIndex()){
-                paint.color = colors.getOrElse(index) { generateRandomColor() }
-                canvas.drawArc(oval, starAngle, progressAngle - filled, false, paint)
-                starAngle += angle
-                filled += angle
-                if (filled > progressAngle){
-                    break
+        if (filledType == FilledType.sequential) {
+            if (progressAngle > max) {
+                data.forEachIndexed { index, _ ->
+                    paint.color = colors.getOrElse(index) { generateRandomColor() }
+                    canvas.drawArc(oval, starAngle, angle, false, paint)
+                    starAngle += angle
+                }
+            } else {
+                var filled = 0F
+                for ((index, _) in data.withIndex()) {
+                    paint.color = colors.getOrElse(index) { generateRandomColor() }
+                    canvas.drawArc(oval, starAngle, progressAngle - filled, false, paint)
+                    starAngle += angle
+                    filled += angle
+                    if (filled > progressAngle) {
+                        break
+                    }
                 }
             }
+            canvas.drawText(
+                "%.2f%%".format((count * data.size) * 100),
+                center.x,
+                center.y + textPaint.textSize / 4,
+                textPaint
+            )
+        } else if (filledType == FilledType.parallel) {
+            data.forEachIndexed { index, _ ->
+                paint.color = colors.getOrElse(index) { generateRandomColor() }
+                canvas.drawArc(oval, starAngle, angle * progress, false, paint)
+                starAngle += angle
+            }
+            canvas.drawText(
+                "%.2f%%".format((count * data.size) * 100),
+                center.x,
+                center.y + textPaint.textSize / 4,
+                textPaint
+            )
         }
-        canvas.drawText(
-            "%.2f%%".format((count * data.size) * 100),
-            center.x,
-            center.y + textPaint.textSize / 4,
-            textPaint
-        )
     }
 
     private fun anim() {
@@ -118,8 +133,6 @@ class StatsView @JvmOverloads constructor(
         valueAnimator = ValueAnimator.ofFloat(0F, 1F).apply {
             addUpdateListener { anim ->
                 progress = anim.animatedValue as Float
-//                rotate = anim.animatedValue as Float * 180
-//                rotation = 100F
             }
             interpolator = LinearInterpolator()
             duration = durationValue
@@ -142,7 +155,8 @@ class StatsView @JvmOverloads constructor(
 
     private fun generateRandomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
 }
-enum class FilledType{
-    parallel,
-    consistent
+
+enum class FilledType {
+    sequential,
+    parallel
 }
